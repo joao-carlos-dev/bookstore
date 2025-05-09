@@ -3,7 +3,7 @@ from django.test import TestCase
 # Create your tests here.
 from django.contrib.auth.models import User
 from product.models import Product
-from .models import Order
+from order.models import Order
 
 class OrderModelTest(TestCase):
     def setUp(self):
