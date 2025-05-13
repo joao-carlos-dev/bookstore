@@ -19,15 +19,18 @@ ENV PATH="/app/.venv/bin:$PATH"
 RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     build-essential \
-    libpq-dev \
-    gcc \
     python3-dev \
     libffi-dev \
     libssl-dev \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Instala o Poetry
-RUN pip install "poetry==$POETRY_VERSION" psycopg2-binary
+RUN pip install "poetry==$POETRY_VERSION"
+
+# install postgress dependencies
+RUN apt-get update \
+    && apt-get -y install libpq-dev gcc \
+    && pip install psycopg2
 
 WORKDIR $APP_HOME
 
@@ -47,6 +50,12 @@ RUN poetry install --without dev --no-interaction --no-ansi
 WORKDIR /app
 COPY . /app/
 
+COPY wait-for-db.sh /app/
+RUN chmod +x /app/wait-for-db.sh
+
 EXPOSE 8000
 
-CMD ["gunicorn", "bookstore.wsgi:application", "--bind", "0.0.0.0:8000"]
+CMD ["/app/wait-for-db.sh", "db", "gunicorn", "bookstore.wsgi:application", "--bind", "0.0.0.0:8000"]
+
+# CMD ["/app/wait-for-db.sh", "db", "python", "manage.py", "runserver", "0.0.0.0:8000"]
+# CMD ["gunicorn", "bookstore.wsgi:application", "--bind", "0.0.0.0:8000"]
