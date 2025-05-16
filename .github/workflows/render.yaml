@@ -1,0 +1,18 @@
+services:
+  - type: web
+    name: bookstore
+    env: python
+    buildCommand: |
+      pip install -r requirements.txt
+      python manage.py collectstatic --noinput
+      python manage.py migrate
+    startCommand: gunicorn bookstore.wsgi:application
+    envVars:
+      - key: DJANGO_SETTINGS_MODULE
+        value: bookstore.settings
+      - key: PYTHON_VERSION
+        value: 3.11
+      - key: SECRET_KEY
+        value: sua-secret-key-aqui
+      - key: DEBUG
+        value: 0
