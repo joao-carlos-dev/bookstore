@@ -1,26 +1,26 @@
 name: Python Pull Request Workflow
+
 on: [pull_request]
 
 jobs:
-
   qa:
     name: Quality check
     runs-on: ubuntu-22.04
+
     steps:
       - uses: actions/checkout@v3
+
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: 3.11
-      - name: Install poetry and dependencies
+          python-version: '3.11'
+
+      - name: Install Poetry and dependencies
         run: |
-          export POETRY_VIRTUALENVS_CREATE=false 
+          export POETRY_VIRTUALENVS_CREATE=false
           pip install --upgrade pip
           pip install poetry
           poetry install --with dev
-
-      - name: View poetry --help
-        run: poetry --help
 
       - name: Run tests
         env:
@@ -35,17 +35,3 @@ jobs:
           reporter: 'github-pr-review'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      # - name: Test
-      #   env:
-      #     DJANGO_ALLOWED_HOSTS: 'localhost 127.0.0.1'
-      #     DJANGO_SETTINGS_MODULE: 'bookstore.settings'
-      #   run: |
-      #     poetry run python manage.py test
-      # - name: Wemake Python Stylguide
-      #   uses: wemake-services/wemake-python-styleguide@0.16.0
-      #   continue-on-error: true
-      #   with:
-      #     reporter: 'github-pr-review'
-      #   env:
-      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
