@@ -27,7 +27,9 @@ jobs:
 
     - name: Install dependencies
       shell: bash
-      run: poetry install
+      run: |
+        poetry add factory_boy
+        poetry install
 
     - name: Set DJANGO_ALLOWED_HOSTS and Test
       env:
