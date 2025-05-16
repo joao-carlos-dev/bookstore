@@ -157,4 +157,4 @@ DEBUG = int(os.environ.get('DEBUG', default=0))
 # allowed_hosts_env = os.environ.get('DJANGO_ALLOWED_HOSTS', '')
 # ALLOWED_HOSTS = allowed_hosts_env.split(',') if allowed_hosts_env else []
 
-ALLOWED_HOSTS = os.environ.get('DJANGO_ALLOWED_HOSTS').split(' ')
+ALLOWED_HOSTS = ['localhost','127.0.0.1', 'joaocarloz.pythonanywhere.com']
