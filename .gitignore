@@ -1,1 +1,12 @@
 .venv/
+__pycache__
+*.pyc
+db.sqlite3
+.pyre/
+.mypy_cache/
+.dmypy.json
+dmypy.json
+/site
+.ropeproject
+.spyderproject
+.spyproject
