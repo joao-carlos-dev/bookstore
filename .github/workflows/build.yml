@@ -29,6 +29,8 @@ jobs:
       shell: bash
       run: poetry install
 
-    - name: Test
+    - name: Set DJANGO_ALLOWED_HOSTS and Test
+      env:
+        DJANGO_ALLOWED_HOSTS: "127.0.0.1,localhost" # Defina aqui!
       run: |
         poetry run python manage.py test
