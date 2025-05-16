@@ -12,10 +12,10 @@ jobs:
         uses: actions/setup-python@v4
         with:
           python-version: 3.11
-      - name: Install poetry
+      - name: Install poetry and dependencies
         run: |
           export POETRY_VIRTUALENVS_CREATE=false 
-          pip install -U pip
+          pip install --upgrade pip
           pip install poetry
           poetry install --with dev
 
