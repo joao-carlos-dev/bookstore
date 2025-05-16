@@ -9,7 +9,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: Set up Python
-        uses: actions/setup-python@master
+        uses: actions/setup-python@v4
         with:
           python-version: 3.11
       - name: Install poetry
@@ -18,22 +18,34 @@ jobs:
           pip install -U pip
           pip install poetry
           poetry install --with dev
-        env:
-          POETRY_VIRTUALENVS_CREATE: false
 
       - name: View poetry --help
         run: poetry --help
 
-      - name: Test
+      - name: Run tests
         env:
           DJANGO_ALLOWED_HOSTS: 'localhost 127.0.0.1'
-          DJANGO_SETTINGS_MODULE: 'bookstore.settings'
         run: |
           poetry run python manage.py test
-      - name: Wemake Python Stylguide
+
+      - name: Wemake Python Styleguide
         uses: wemake-services/wemake-python-styleguide@0.16.0
         continue-on-error: true
         with:
           reporter: 'github-pr-review'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # - name: Test
+      #   env:
+      #     DJANGO_ALLOWED_HOSTS: 'localhost 127.0.0.1'
+      #     DJANGO_SETTINGS_MODULE: 'bookstore.settings'
+      #   run: |
+      #     poetry run python manage.py test
+      # - name: Wemake Python Stylguide
+      #   uses: wemake-services/wemake-python-styleguide@0.16.0
+      #   continue-on-error: true
+      #   with:
+      #     reporter: 'github-pr-review'
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
