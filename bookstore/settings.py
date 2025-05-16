@@ -21,7 +21,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-1m7o0j=fme^%=59$j^!(43%wkf8ue1kfyxbq-)jylrp_#(o-t)'
+# SECRET_KEY = 'django-insecure-1m7o0j=fme^%=59$j^!(43%wkf8ue1kfyxbq-)jylrp_#(o-t)'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -78,7 +78,7 @@ TEMPLATES = [
 WSGI_APPLICATION = 'bookstore.wsgi.application'
 
 STATIC_ROOT = BASE_DIR / 'staticfiles'
-STATICFILES_STORAGE = 'whitenoise.storage.CompessedManifestStaticFilesStorage'
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
