@@ -33,6 +33,7 @@ jobs:
 
     - name: Set DJANGO_ALLOWED_HOSTS and Test
       env:
-        DJANGO_ALLOWED_HOSTS: "127.0.0.1,localhost" # Defina aqui!
+        DJANGO_ALLOWED_HOSTS: "127.0.0.1,localhost"
+        SECRET_KEY: "django-insecure-1m7o0j=fme^%=59$j^!(43%wkf8ue1kfyxbq-)jylrp_#(o-t)"
       run: |
         poetry run python manage.py test
