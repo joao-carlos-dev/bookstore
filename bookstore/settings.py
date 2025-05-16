@@ -28,9 +28,9 @@ SECRET_KEY = os.environ.get('SECRET_KEY', 'fallback-secret-key-para-dev')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = int(os.environ.get('DEBUG', default=0))
 
-# ALLOWED_HOSTS = []
-allowed_hosts_env = os.environ.get('DJANGO_ALLOWED_HOSTS', 'localhost,127.0.0.1')
-ALLOWED_HOSTS = allowed_hosts_env.split(',')
+ALLOWED_HOSTS = ['*']
+# allowed_hosts_env = os.environ.get('DJANGO_ALLOWED_HOSTS', 'localhost,127.0.0.1')
+# ALLOWED_HOSTS = allowed_hosts_env.split(',')
 
 # Application definition
 
