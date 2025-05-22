@@ -17,23 +17,18 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
 
-    - name: Install Poetry (version 1.8.5)
+    - name: Install Poetry
       run: |
         python -m ensurepip
         python -m pip install --upgrade pip
-        python -m pip install poetry==1.8.5
+        python -m pip install  --upgrade poetry
     - name: View poetry --help
       run: poetry --help
 
     - name: Install dependencies
       shell: bash
-      run: |
-        poetry add factory_boy
-        poetry install
+      run: poetry -m poetry install
 
-    - name: Set DJANGO_ALLOWED_HOSTS and Test
-      env:
-        DJANGO_ALLOWED_HOSTS: "127.0.0.1,localhost"
-        SECRET_KEY: "django-insecure-1m7o0j=fme^%=59$j^!(43%wkf8ue1kfyxbq-)jylrp_#(o-t)"
+    - name: Test
       run: |
         poetry run python manage.py test
