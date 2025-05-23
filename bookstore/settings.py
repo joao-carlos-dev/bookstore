@@ -14,6 +14,12 @@ import os
 from pathlib import Path
 import dj_database_url
 
+# Opcional: para carregar variáveis de ambiente de um arquivo .env em desenvolvimento local
+# Instale com: pip install python-dotenv
+# Crie um arquivo .env na raiz do projeto e adicione-o ao .gitignore
+# from dotenv import load_dotenv
+# load_dotenv()
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -22,54 +28,90 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-# SECRET_KEY = 'django-insecure-1m7o0j=fme^%=59$j^!(43%wkf8ue1kfyxbq-)jylrp_#(o-t)'
-SECRET_KEY = os.environ.get('SECRET_KEY', 'fallback-secret-key-para-dev')
+# Esta chave será fornecida pela variável de ambiente SECRET_KEY no Render.
+# O fallback é apenas para desenvolvimento local se a variável não estiver definida.
+SECRET_KEY = os.environ.get('SECRET_KEY', 'fallback-super-secret-key-for-local-dev-only')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = int(os.environ.get('DEBUG', default=0))
+# Defina a variável de ambiente DJANGO_DEBUG='False' no Render.
+# Por padrão, será True se a variável não estiver definida ou não for 'False'.
+DEBUG = os.environ.get('DJANGO_DEBUG', '') != 'False'
 
-ALLOWED_HOSTS = ['*']
-# allowed_hosts_env = os.environ.get('DJANGO_ALLOWED_HOSTS', 'localhost,127.0.0.1')
-# ALLOWED_HOSTS = allowed_hosts_env.split(',')
+
+ALLOWED_HOSTS = []
+
+# Render injeta a variável RENDER_EXTERNAL_HOSTNAME com o nome do host público.
+RENDER_EXTERNAL_HOSTNAME = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
+if RENDER_EXTERNAL_HOSTNAME:
+    ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
+
+# Para desenvolvimento local, adicione localhost e 127.0.0.1 se DEBUG for True
+# e não estivermos no ambiente Render (onde RENDER_EXTERNAL_HOSTNAME seria definido).
+if DEBUG and not RENDER_EXTERNAL_HOSTNAME:
+    ALLOWED_HOSTS.extend(['localhost', '127.0.0.1'])
+
+# Se você tiver outros hosts específicos que precisa permitir (ex: de um .env),
+# você pode adicioná-los aqui ou através de uma variável de ambiente.
+# Ex: DJANGO_EXTRA_ALLOWED_HOSTS="meusite.com,api.meusite.com"
+# EXTRA_HOSTS = os.environ.get('DJANGO_EXTRA_ALLOWED_HOSTS')
+# if EXTRA_HOSTS:
+#     ALLOWED_HOSTS.extend([host.strip() for host in EXTRA_HOSTS.split(',')])
+
 
 # Application definition
-
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
+    'whitenoise.runserver_nostatic', # Deve vir antes de 'django.contrib.staticfiles' se DEBUG=True
     'django.contrib.staticfiles',
     'rest_framework',
     'django_extensions',
     'order',
     'product',
-    'debug_toolbar',
     'rest_framework.authtoken',
+    # 'debug_toolbar', # Será adicionado condicionalmente abaixo se DEBUG=True
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware', # Colocado logo após SecurityMiddleware
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'debug_toolbar.middleware.DebugToolbarMiddleware',
+    # 'debug_toolbar.middleware.DebugToolbarMiddleware', # Será adicionado condicionalmente
 ]
+
+# Adicionar debug_toolbar apenas se DEBUG for True
+if DEBUG:
+    INSTALLED_APPS.append('debug_toolbar')
+    MIDDLEWARE.insert(0, 'debug_toolbar.middleware.DebugToolbarMiddleware') # Tente inserir antes ou ajuste a ordem se necessário
+    # Certifique-se de que INTERNAL_IPS esteja configurado para debug_toolbar
+    INTERNAL_IPS = [
+        '127.0.0.1',
+        'localhost',
+    ]
+    # Se o debug_toolbar não aparecer, você pode precisar ajustar a ordem do middleware.
+    # Uma alternativa é colocá-lo após CommonMiddleware:
+    # common_middleware_index = MIDDLEWARE.index('django.middleware.common.CommonMiddleware')
+    # MIDDLEWARE.insert(common_middleware_index + 1, 'debug_toolbar.middleware.DebugToolbarMiddleware')
+
 
 ROOT_URLCONF = 'bookstore.urls'
 
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [os.path.join(BASE_DIR, 'templates')], # Adicione se tiver templates globais
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
+                'django.template.context_processors.debug', # Adicionado para debug_toolbar
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
@@ -80,93 +122,83 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'bookstore.wsgi.application'
 
-# STATIC_ROOT = BASE_DIR / 'staticfiles'
-# STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
-
-DATABASES = {
-    'default': dj_database_url.config(
-        default=f'sqlite:///{BASE_DIR}/db.sqlite3',
-        conn_max_age=600
-    )
-}
 
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
-
-# DATABASES = {
-#     'default': {
-#         "ENGINE": os.environ.get("SQL_ENGINE", "django.db.backends.sqlite3"),
-#         "NAME": os.environ.get("SQL_DATABASE", BASE_DIR / "db.sqlite3"),
-#         "USER": os.environ.get("SQL_USER", "user"),
-#         "PASSWORD": os.environ.get("SQL_PASSWORD", "password"),
-#         "HOST": os.environ.get("SQL_HOST", "localhost"),
-#         "PORT": os.environ.get("SQL_PORT", "5432"),
-#     }
-# }
+# Render fornecerá a DATABASE_URL. Para desenvolvimento local, usará SQLite.
+DATABASES = {
+    'default': dj_database_url.config(
+        default=f'sqlite:///{BASE_DIR / "db.sqlite3"}',
+        conn_max_age=600, # Recomendado para conexões persistentes com PostgreSQL
+        conn_health_checks=True, # Adicionado para robustez com dj_database_url >= 1.0
+    )
+}
 
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
-
 AUTH_PASSWORD_VALIDATORS = [
-    {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
-    },
+    { 'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator', },
+    { 'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator', },
+    { 'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator', },
+    { 'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator', },
 ]
 
 
 # Internationalization
 # https://docs.djangoproject.com/en/5.2/topics/i18n/
-
-LANGUAGE_CODE = 'en-us'
-
-TIME_ZONE = 'UTC'
-
+LANGUAGE_CODE = 'pt-br' # Ajustado para português do Brasil, se preferir
+TIME_ZONE = 'America/Sao_Paulo' # Ajustado para fuso horário de São Paulo, se preferir
 USE_I18N = True
-
-USE_TZ = True
+USE_TZ = True # Mantido como True, o que é geralmente recomendado
 
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
+STATIC_URL = '/static/'
+# Diretório onde o `collectstatic` copiará os arquivos estáticos para produção.
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
-STATIC_URL = 'static/'
-STATIC_ROOT = BASE_DIR / 'staticfiles'
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+# Para simplificar o desenvolvimento com Whitenoise (não precisa de `runserver_nostatic` em INSTALLED_APPS)
+# STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+# No entanto, se você usar `whitenoise.runserver_nostatic` em INSTALLED_APPS (como feito acima),
+# esta linha abaixo é mais para produção. O `runserver_nostatic` cuida disso em dev.
+# Para produção, o Whitenoise usará esta configuração:
+if not DEBUG:
+    STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
-
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 REST_FRAMEWORK = {
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 10,
     'DEFAULT_AUTHENTICATION_CLASSES': [
-        'rest_framework.authentication.BasicAuthentication',
-        'rest_framework.authentication.SessionAuthentication',
-        'rest_framework.authentication.TokenAuthentication',
+        'rest_framework.authentication.TokenAuthentication', # Token primeiro é comum para APIs
+        'rest_framework.authentication.SessionAuthentication', # Para o admin e browsable API
+        'rest_framework.authentication.BasicAuthentication', # Menos comum para APIs públicas
     ],
+    # Adicione outras configurações do DRF conforme necessário
+    # 'DEFAULT_PERMISSION_CLASSES': [
+    #     'rest_framework.permissions.IsAuthenticated',
+    # ],
 }
 
-INTERNAL_IPS = [
-    '127.0.0.1',
-]
+# Configurações de segurança para produção (quando DEBUG=False)
+# Render lida com HTTPS, então estas configurações ajudam a forçar/confirmar.
+if not DEBUG:
+    CSRF_COOKIE_SECURE = True
+    SESSION_COOKIE_SECURE = True
+    SECURE_SSL_REDIRECT = True # Redireciona HTTP para HTTPS
+    # Header X-Forwarded-Proto é importante se estiver atrás de um proxy reverso (como no Render)
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+    # HSTS (HTTP Strict Transport Security) - opcional, mas bom para segurança
+    SECURE_HSTS_SECONDS = 31536000  # 1 ano
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
 
-# SECRET_KEY = os.environ.get('SECRET_KEY')
-
-# DEBUG = int(os.environ.get('DEBUG', default=0))
-
-# allowed_hosts_env = os.environ.get('DJANGO_ALLOWED_HOSTS', '')
-# ALLOWED_HOSTS = allowed_hosts_env.split(',') if allowed_hosts_env else []
-
-ALLOWED_HOSTS = ['localhost','127.0.0.1', 'joaocarloz.pythonanywhere.com']
+# Limpar as variáveis duplicadas ou de teste que estavam no final do seu arquivo original
+# INTERNAL_IPS já está dentro do if DEBUG
+# As configurações de SECRET_KEY, DEBUG, ALLOWED_HOSTS já foram tratadas no início.
