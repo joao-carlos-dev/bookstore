@@ -4,7 +4,7 @@
 services:
   # Serviço Web para a aplicação Django/Gunicorn
   - type: web
-    name: bookstore-api # Ou o nome que você preferir para o serviço
+    name: bookstore # Ou o nome que você preferir para o serviço
     runtime: python
     region: oregon # Escolha a região mais próxima de você ou seus usuários (ex: frankfurt, ohio, singapore)
     plan: free # Ou 'starter', 'standard', etc., conforme sua necessidade
