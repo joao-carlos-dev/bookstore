@@ -1,18 +1,45 @@
+# render.yaml
+# Este arquivo define a infraestrutura para o seu projeto no Render.
+
 services:
+  # Serviço Web para a aplicação Django/Gunicorn
   - type: web
-    name: bookstore
-    env: python
+    name: bookstore-api # Ou o nome que você preferir para o serviço
+    runtime: python
+    region: oregon # Escolha a região mais próxima de você ou seus usuários (ex: frankfurt, ohio, singapore)
+    plan: free # Ou 'starter', 'standard', etc., conforme sua necessidade
+    branch: main # Ou a branch que você quer usar para deploys automáticos
+    autoDeploy: true # Deploys automáticos ao fazer push para a branch especificada
     buildCommand: |
+      pip install --upgrade pip
       pip install -r requirements.txt
       python manage.py collectstatic --noinput
       python manage.py migrate
-    startCommand: gunicorn bookstore.wsgi:application
+    startCommand: "gunicorn bookstore.wsgi:application" # Substitua 'bookstore' se o nome da sua pasta de projeto Django for diferente
     envVars:
-      - key: DJANGO_SETTINGS_MODULE
-        value: bookstore.settings
       - key: PYTHON_VERSION
-        value: 3.11
+        value: "3.10.12" # Garanta que corresponda ao seu runtime.txt ou à versão desejada
+      - key: DJANGO_SETTINGS_MODULE
+        value: "bookstore.settings" # Substitua 'bookstore' se o nome da sua pasta de projeto Django for diferente
       - key: SECRET_KEY
-        value: sua-secret-key-aqui
-      - key: DEBUG
-        value: 0
+        generateValue: true # O Render irá gerar um valor seguro para esta chave
+      - key: DJANGO_DEBUG
+        value: "False" # Importante para produção
+      - key: DATABASE_URL
+        fromDatabase:
+          name: bookstore-db # Nome do serviço de banco de dados definido abaixo
+          property: connectionString
+      # Adicione outras variáveis de ambiente que sua aplicação possa precisar
+      # Exemplo:
+      # - key: STRIPE_SECRET_KEY
+      #   sync: false # Se for uma chave secreta que você não quer que seja atualizada com o blueprint automaticamente
+
+  # Serviço de Banco de Dados PostgreSQL
+  - type: pserv # pserv é para PostgreSQL
+    name: bookstore-db # Nome do serviço de banco de dados
+    region: oregon # Use a mesma região do seu serviço web para menor latência
+    plan: free # Ou um plano pago para produção
+    postgresMajorVersion: 15 # Ou a versão que você preferir (ex: 14, 16)
+    # Para bancos de dados existentes, você pode omitir `postgresMajorVersion` e adicionar `databaseName` e `user` se necessário.
+    # Se você já criou um banco de dados pelo dashboard, pode referenciá-lo aqui ou
+    # deixar o Render criar um novo baseado nesta definição.
